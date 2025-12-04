@@ -1,5 +1,5 @@
 
-  # TypeBlitz Typing Speed Test
+  # TypeBlitz
 
   This is a code bundle for TypeBlitz Typing Speed Test. The original project is available at https://www.figma.com/design/jfKGn3TA3phFJQLQkV3WbU/TypeBlitz-Typing-Speed-Test.
 
