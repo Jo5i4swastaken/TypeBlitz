@@ -65,6 +65,8 @@ export default function App() {
   const [results, setResults] = useState({ wpm: 0, accuracy: 0 });
   const [currentTextIndex, setCurrentTextIndex] = useState(0);
 
+  const [restartTrigger, setRestartTrigger] = useState(0);
+
   const currentTexts = textsByLanguage[language];
 
   // Set favicon and page title
@@ -88,6 +90,7 @@ export default function App() {
   const handleStartTest = () => {
     setIsTestActive(true);
     setShowResults(false);
+    setRestartTrigger(0);
   };
 
   const handleComplete = (wpm: number, accuracy: number) => {
@@ -99,12 +102,14 @@ export default function App() {
   const handleRepeat = () => {
     setIsTestActive(true);
     setShowResults(false);
+    setRestartTrigger(prev => prev + 1);
   };
 
   const handleNext = () => {
     setCurrentTextIndex((prev) => (prev + 1) % currentTexts.length);
     setIsTestActive(true);
     setShowResults(false);
+    setRestartTrigger(0);
   };
 
   const handleBackToHome = () => {
@@ -115,6 +120,7 @@ export default function App() {
   const handleRetry = () => {
     setShowResults(false);
     setIsTestActive(true);
+    setRestartTrigger(prev => prev + 1);
   };
 
   const handleLanguageChange = (lang: string) => {
@@ -126,6 +132,7 @@ export default function App() {
     <>
       {isTestActive ? (
         <ActiveView
+          key={restartTrigger}
           text={currentTexts[currentTextIndex]}
           timeLimit={selectedTime}
           onComplete={handleComplete}
