@@ -42,6 +42,16 @@ const textsByLanguage = {
   ],
 };
 
+/**
+ * Main Application Component
+ * 
+ * Manages the global state of the application, including:
+ * - Theme selection (default, cyberpunk, paper, soft)
+ * - Difficulty settings (normal, expert, master)
+ * - Language selection and text content
+ * - Test configuration (time limit, minimum speed/accuracy)
+ * - Navigation between HomeView (setup) and ActiveView (test)
+ */
 export default function App() {
   const [theme, setTheme] = useState<"default" | "cyberpunk" | "paper" | "soft">("default");
   const [difficulty, setDifficulty] = useState("normal");

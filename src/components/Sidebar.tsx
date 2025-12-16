@@ -15,6 +15,17 @@ interface SidebarProps {
   onMinAccuracyChange: (value: number | null) => void;
 }
 
+/**
+ * Sidebar Component
+ * 
+ * Displays the configuration settings for the typing test.
+ * Allows users to select:
+ * - Difficulty level (Normal, Expert, Master)
+ * - Minimum Speed (WPM) threshold
+ * - Minimum Accuracy threshold
+ * 
+ * Updates the parent state via callback props.
+ */
 export function Sidebar({
   difficulty,
   mode,

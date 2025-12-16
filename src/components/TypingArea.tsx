@@ -12,6 +12,16 @@ interface TypingAreaProps {
   difficulty: string;
 }
 
+/**
+ * TypingArea Component
+ * 
+ * The core component for the typing test. It handles:
+ * - Capturing user input and comparing it with the target text
+ * - Calculating real-time WPM and Accuracy
+ * - Enforcing difficulty rules (Expert: no backspace, Master: fail on error)
+ * - Auto-advancing to the next text chunk
+ * - Displaying visual warnings for low speed/accuracy
+ */
 export function TypingArea({
   text,
   isActive,
