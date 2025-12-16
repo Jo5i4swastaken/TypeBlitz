@@ -4,16 +4,39 @@ interface TypingAreaProps {
   text: string;
   isActive: boolean;
   onComplete: (wpm: number, accuracy: number) => void;
+  onNext: () => void;
   timeLimit: number;
   theme?: "default" | "cyberpunk" | "paper" | "soft";
+  minSpeed: number | null;
+  minAccuracy: number | null;
+  difficulty: string;
 }
 
-export function TypingArea({ text, isActive, onComplete, timeLimit, theme = "default" }: TypingAreaProps) {
+export function TypingArea({
+  text,
+  isActive,
+  onComplete,
+  onNext,
+  timeLimit,
+  theme = "default",
+  minSpeed,
+  minAccuracy,
+  difficulty
+}: TypingAreaProps) {
   const [input, setInput] = useState("");
   const [currentIndex, setCurrentIndex] = useState(0);
   const [errors, setErrors] = useState<number[]>([]);
   const [startTime, setStartTime] = useState<number | null>(null);
   const [timeRemaining, setTimeRemaining] = useState(timeLimit);
+  const [warningActive, setWarningActive] = useState(false);
+
+  // Stats history for previous chunks
+  const [history, setHistory] = useState<{
+    words: number;
+    errors: number;
+    chars: number;
+  }>({ words: 0, errors: 0, chars: 0 });
+
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -28,12 +51,43 @@ export function TypingArea({ text, isActive, onComplete, timeLimit, theme = "def
     }
   }, [isActive, startTime]);
 
+  // Reset input when text changes (auto-advance)
+  useEffect(() => {
+    setInput("");
+    setCurrentIndex(0);
+    setErrors([]);
+  }, [text]);
+
   useEffect(() => {
     if (!isActive || !startTime) return;
 
     const timer = setInterval(() => {
-      const elapsed = Math.floor((Date.now() - startTime) / 1000);
+      const now = Date.now();
+      const elapsed = Math.floor((now - startTime) / 1000);
       const remaining = timeLimit - elapsed;
+
+      // Check minimums
+      if (elapsed > 5) { // Only check after 5 seconds
+        const timeInMinutes = elapsed / 60;
+
+        // Calculate current totals including history
+        const currentWords = input.trim().split(/\s+/).length;
+        const totalWords = history.words + (input.trim() ? currentWords : 0);
+
+        const currentWpm = timeInMinutes > 0 ? Math.round(totalWords / timeInMinutes) : 0;
+
+        const totalChars = history.chars + input.length;
+        const totalErrors = history.errors + errors.length;
+        const currentAccuracy = totalChars > 0
+          ? Math.round(((totalChars - totalErrors) / totalChars) * 100)
+          : 100;
+
+        let shouldWarn = false;
+        if (minSpeed && currentWpm < minSpeed) shouldWarn = true;
+        if (minAccuracy && currentAccuracy < minAccuracy) shouldWarn = true;
+
+        setWarningActive(shouldWarn);
+      }
 
       if (remaining <= 0) {
         clearInterval(timer);
@@ -44,18 +98,69 @@ export function TypingArea({ text, isActive, onComplete, timeLimit, theme = "def
     }, 100);
 
     return () => clearInterval(timer);
-  }, [isActive, startTime, timeLimit]);
+  }, [isActive, startTime, timeLimit, input, errors, minSpeed, minAccuracy, history]);
 
   const calculateResults = () => {
     const timeInMinutes = timeLimit / 60;
-    const wordsTyped = input.trim().split(/\s+/).length;
-    const wpm = Math.round(wordsTyped / timeInMinutes);
-    const accuracy = Math.round(((text.length - errors.length) / text.length) * 100);
+
+    // Current chunk stats
+    const currentWords = input.trim().split(/\s+/).length;
+    const totalWords = history.words + (input.trim() ? currentWords : 0);
+
+    const wpm = Math.round(totalWords / timeInMinutes);
+
+    // Actually for accuracy: (total_correct_chars / total_chars) * 100
+    // History stores total chars typed and total errors
+    const finalTotalChars = history.chars + input.length;
+    const finalTotalErrors = history.errors + errors.length;
+
+    const accuracy = finalTotalChars > 0
+      ? Math.round(((finalTotalChars - finalTotalErrors) / finalTotalChars) * 100)
+      : 100;
+
     onComplete(wpm, accuracy);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (difficulty === "expert" && e.key === "Backspace") {
+      e.preventDefault();
+    }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
+
+    // Master mode check: if error, end test immediately
+    if (difficulty === "master") {
+      if (value.length > input.length) {
+        const lastCharIndex = value.length - 1;
+        if (value[lastCharIndex] !== text[lastCharIndex]) {
+          onComplete(0, 0);
+          return;
+        }
+      }
+    }
+
+    // Check for auto-advance
+    if (value.length === text.length) {
+      // Accumulate stats
+      const wordsInChunk = value.trim().split(/\s+/).length;
+      const errorsInChunk = [];
+      for (let i = 0; i < value.length; i++) {
+        if (value[i] !== text[i]) errorsInChunk.push(i);
+      }
+
+      setHistory(prev => ({
+        words: prev.words + wordsInChunk,
+        errors: prev.errors + errorsInChunk.length,
+        chars: prev.chars + value.length
+      }));
+
+      // Trigger next text
+      onNext();
+      return;
+    }
+
     setInput(value);
 
     const newErrors: number[] = [];
@@ -107,23 +212,29 @@ export function TypingArea({ text, isActive, onComplete, timeLimit, theme = "def
   };
 
   return (
-    <div className="flex flex-col items-center justify-center gap-12 w-full max-w-4xl mx-auto px-8">
+    <div className="flex flex-col items-center justify-center gap-12 w-full max-w-4xl mx-auto px-8 relative">
       {isActive && (
-        <div
-          className={`${
-            theme === "paper"
+        <div className="flex flex-col items-center gap-2">
+          {warningActive && (
+            <div className="text-red-500 font-bold animate-blink-red text-sm tracking-widest">
+              SPEED/ACCURACY LOW!
+            </div>
+          )}
+          <div
+            className={`${theme === "paper"
               ? "text-[#1a2332]"
               : theme === "soft"
-              ? "text-[#b794f6]"
-              : theme === "cyberpunk"
-              ? "text-[#00ffff]"
-              : "text-[#00d4ff]"
-          }`}
-        >
-          {formatTime(timeRemaining)}
+                ? "text-[#b794f6]"
+                : theme === "cyberpunk"
+                  ? "text-[#00ffff]"
+                  : "text-[#00d4ff]"
+              }`}
+          >
+            {formatTime(timeRemaining)}
+          </div>
         </div>
       )}
-      
+
       <div className="relative w-full">
         <p className="font-mono text-center leading-relaxed whitespace-pre-wrap">
           {text.split("").map((char, index) => (
@@ -142,6 +253,7 @@ export function TypingArea({ text, isActive, onComplete, timeLimit, theme = "def
           type="text"
           value={input}
           onChange={handleInputChange}
+          onKeyDown={handleKeyDown}
           className="absolute inset-0 opacity-0 cursor-default"
           disabled={!isActive}
         />

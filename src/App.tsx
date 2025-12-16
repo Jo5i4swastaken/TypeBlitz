@@ -47,6 +47,8 @@ export default function App() {
   const [difficulty, setDifficulty] = useState("normal");
   const [mode, setMode] = useState("agile");
   const [selectedTime, setSelectedTime] = useState(30);
+  const [minSpeed, setMinSpeed] = useState<number | null>(null);
+  const [minAccuracy, setMinAccuracy] = useState<number | null>(null);
   const [language, setLanguage] = useState<keyof typeof textsByLanguage>("English");
   const [isTestActive, setIsTestActive] = useState(false);
   const [showResults, setShowResults] = useState(false);
@@ -121,6 +123,9 @@ export default function App() {
           onNext={handleNext}
           theme={theme}
           language={language}
+          minSpeed={minSpeed}
+          minAccuracy={minAccuracy}
+          difficulty={difficulty}
         />
       ) : (
         <HomeView
@@ -137,6 +142,10 @@ export default function App() {
           currentLanguage={language}
           onStartTest={handleStartTest}
           theme={theme}
+          minSpeed={minSpeed}
+          minAccuracy={minAccuracy}
+          onMinSpeedChange={setMinSpeed}
+          onMinAccuracyChange={setMinAccuracy}
         />
       )}
 

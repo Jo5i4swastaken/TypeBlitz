@@ -19,6 +19,10 @@ interface HomeViewProps {
   currentLanguage: Language;
   onStartTest: () => void;
   theme?: "default" | "cyberpunk" | "paper" | "soft";
+  minSpeed: number | null;
+  minAccuracy: number | null;
+  onMinSpeedChange: (value: number | null) => void;
+  onMinAccuracyChange: (value: number | null) => void;
 }
 
 export function HomeView({
@@ -35,9 +39,13 @@ export function HomeView({
   currentLanguage,
   onStartTest,
   theme = "default",
+  minSpeed,
+  minAccuracy,
+  onMinSpeedChange,
+  onMinAccuracyChange,
 }: HomeViewProps) {
   const t = translations[currentLanguage];
-  
+
   const getBgColor = () => {
     if (theme === "paper") return "bg-[#f5f3ed]";
     if (theme === "soft") return "bg-gradient-to-br from-[#e8f0f7] via-[#f0e8f7] to-[#e8f7f0]";
@@ -56,36 +64,38 @@ export function HomeView({
           onModeChange={onModeChange}
           theme={theme}
           language={currentLanguage}
+          minSpeed={minSpeed}
+          minAccuracy={minAccuracy}
+          onMinSpeedChange={onMinSpeedChange}
+          onMinAccuracyChange={onMinAccuracyChange}
         />
         <div className="flex-1 flex flex-col">
           <div className="flex-1 flex flex-col items-center justify-center gap-12 p-12">
             <TimeSelector selectedTime={selectedTime} onTimeChange={onTimeChange} theme={theme} />
             <div className="w-full max-w-4xl text-center">
               <p
-                className={`mono leading-relaxed ${
-                  theme === "paper"
+                className={`mono leading-relaxed ${theme === "paper"
                     ? "text-[#6b7280]"
                     : theme === "soft"
-                    ? "text-[#64748b]"
-                    : theme === "cyberpunk"
-                    ? "text-[#4a4a5c]"
-                    : "text-[#8a8a8a]"
-                }`}
+                      ? "text-[#64748b]"
+                      : theme === "cyberpunk"
+                        ? "text-[#4a4a5c]"
+                        : "text-[#8a8a8a]"
+                  }`}
               >
                 {text}
               </p>
               <div className="mt-8">
                 <button
                   onClick={onStartTest}
-                  className={`px-8 py-3 rounded-lg transition-all hover:scale-105 ${
-                    theme === "paper"
+                  className={`px-8 py-3 rounded-lg transition-all hover:scale-105 ${theme === "paper"
                       ? "bg-[#1a2332] text-[#f5f3ed] hover:bg-[#2d3748]"
                       : theme === "soft"
-                      ? "bg-[#b794f6] text-white glass hover:bg-[#a585e6]"
-                      : theme === "cyberpunk"
-                      ? "bg-[#00ffff] text-[#0a0a0f] hover:shadow-[0_0_20px_rgba(0,255,255,0.6)]"
-                      : "bg-[#00d4ff] text-[#1e1e1e] hover:bg-[#00bce6]"
-                  }`}
+                        ? "bg-[#b794f6] text-white glass hover:bg-[#a585e6]"
+                        : theme === "cyberpunk"
+                          ? "bg-[#00ffff] text-[#0a0a0f] hover:shadow-[0_0_20px_rgba(0,255,255,0.6)]"
+                          : "bg-[#00d4ff] text-[#1e1e1e] hover:bg-[#00bce6]"
+                    }`}
                 >
                   {t.startTest}
                 </button>

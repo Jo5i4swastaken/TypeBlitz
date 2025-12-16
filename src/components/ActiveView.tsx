@@ -1,4 +1,4 @@
-import { RefreshCw, SkipForward } from "lucide-react";
+import { RefreshCw } from "lucide-react";
 import { Logo } from "./Logo";
 import { TypingArea } from "./TypingArea";
 import { translations, Language } from "../locales/translations";
@@ -11,11 +11,25 @@ interface ActiveViewProps {
   onNext: () => void;
   theme?: "default" | "cyberpunk" | "paper" | "soft";
   language?: Language;
+  minSpeed: number | null;
+  minAccuracy: number | null;
+  difficulty: string;
 }
 
-export function ActiveView({ text, timeLimit, onComplete, onRepeat, onNext, theme = "default", language = "English" }: ActiveViewProps) {
+export function ActiveView({
+  text,
+  timeLimit,
+  onComplete,
+  onRepeat,
+  onNext,
+  theme = "default",
+  language = "English",
+  minSpeed,
+  minAccuracy,
+  difficulty
+}: ActiveViewProps) {
   const t = translations[language];
-  
+
   const getBgColor = () => {
     if (theme === "paper") return "bg-[#f5f3ed]";
     if (theme === "soft") return "bg-gradient-to-br from-[#e8f0f7] via-[#f0e8f7] to-[#e8f7f0]";
@@ -45,7 +59,17 @@ export function ActiveView({ text, timeLimit, onComplete, onRepeat, onNext, them
         </div>
       </div>
       <div className="flex-1 flex items-center justify-center">
-        <TypingArea text={text} isActive={true} onComplete={onComplete} timeLimit={timeLimit} theme={theme} />
+        <TypingArea
+          text={text}
+          isActive={true}
+          onComplete={onComplete}
+          onNext={onNext}
+          timeLimit={timeLimit}
+          theme={theme}
+          minSpeed={minSpeed}
+          minAccuracy={minAccuracy}
+          difficulty={difficulty}
+        />
       </div>
       <div className="p-8 flex items-center justify-center gap-6">
         <button
@@ -54,13 +78,6 @@ export function ActiveView({ text, timeLimit, onComplete, onRepeat, onNext, them
         >
           <RefreshCw className="w-5 h-5" />
           <span className="text-[12px]">{t.repeat}</span>
-        </button>
-        <button
-          onClick={onNext}
-          className={`flex items-center gap-2 transition-colors ${getButtonColor()}`}
-        >
-          <SkipForward className="w-5 h-5" />
-          <span className="text-[12px]">{t.next}</span>
         </button>
       </div>
     </div>
